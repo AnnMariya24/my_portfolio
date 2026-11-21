@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBackToTop();
   initParallaxHero();
   initMobileNav();
+  initBeforeAfterSlider();
 });
 
 /* ============================================================
@@ -144,39 +145,34 @@ function initScrollReveal() {
    5. LAZY LOAD IMAGES
    ============================================================ */
 function initLazyLoad() {
-  const images = document.querySelectorAll('img[data-src]');
+  const lazyImages = document.querySelectorAll('img[data-src]');
 
-  if (!images.length) return;
+  if (lazyImages.length) {
+    const imageObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.addEventListener('load', () => {
+              img.classList.add('loaded');
+            });
+            img.addEventListener('error', () => {
+              img.classList.add('loaded'); // prevent broken state
+            });
+            imageObserver.unobserve(img);
+          }
+        });
+      },
+      { rootMargin: '200px 0px' }
+    );
 
-  const imageObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.src = img.dataset.src;
-          img.addEventListener('load', () => {
-            img.classList.add('loaded');
-          });
-          img.addEventListener('error', () => {
-            img.classList.add('loaded'); // prevent broken state
-          });
-          imageObserver.unobserve(img);
-        }
-      });
-    },
-    { rootMargin: '200px 0px' }
-  );
+    lazyImages.forEach(img => imageObserver.observe(img));
+  }
 
-  images.forEach(img => imageObserver.observe(img));
-
-  // Eager load images (no data-src)
-  document.querySelectorAll('img:not([data-src])').forEach(img => {
-    if (img.complete) {
-      img.classList.add('loaded');
-    } else {
-      img.addEventListener('load', () => img.classList.add('loaded'));
-      img.addEventListener('error', () => img.classList.add('loaded'));
-    }
+  // Ensure all standard images have loaded class
+  document.querySelectorAll('img').forEach(img => {
+    img.classList.add('loaded');
   });
 }
 
@@ -281,4 +277,210 @@ function onVisible(selector, callback, options = {}) {
 
   els.forEach(el => observer.observe(el));
   return observer;
+}
+
+
+/* ============================================================
+   10. INTERACTIVE BEFORE & AFTER SLIDER & REDESIGN TABS
+   ============================================================ */
+const REDESIGN_DATA = {
+  dashboards: {
+    title: 'Apex Company Dashboards',
+    category: 'Enterprise Operations · Mobile ERP Redesign',
+    beforeImg: 'assets/images/sample-before-dashboard.png',
+    afterImg: 'assets/images/sample-after-dashboard.png',
+    challenge: 'The legacy enterprise operations portal was visually cluttered, lacked typographic hierarchy, and had generic outline buttons that caused user fatigue in fast-paced field operations.',
+    solution: 'Re-architected the entire interface using Flutter Material 3 tokens. Introduced a dynamic top greeting with search filtering, elevated module cards with micro-shadows, contextual icon categorisation, and a modern floating bottom dock.',
+    metrics: [
+      { val: '-45%', label: 'Task Access Time' },
+      { val: '60 FPS', label: 'Flutter Smoothness' },
+      { val: '+88%', label: 'User Satisfaction' }
+    ],
+    tags: ['Flutter 3', 'Material 3', 'Figma Redesign', 'GetX', 'Mobile ERP', 'Design System']
+  },
+  receipt: {
+    title: 'SmartReceipt Financial Flow',
+    category: 'Fintech & Accounting · Form UX Redesign',
+    beforeImg: 'assets/images/sample-before-form.png',
+    afterImg: 'assets/images/sample-after-form.png',
+    challenge: 'A cramped, intimidating data entry form with raw radio buttons, unstyled inputs, and a heavy bottom bar that led to high input errors on mobile screens.',
+    solution: 'Transformed into a spacious, segmented Flutter form. Replaced radio lists with tactile pill selectors, added intuitive input icons, dynamic field validation, and an accessible floating action button.',
+    metrics: [
+      { val: '-62%', label: 'Form Abandonment' },
+      { val: '2.4x', label: 'Faster Input Rate' },
+      { val: 'Zero', label: 'Validation Errors' }
+    ],
+    tags: ['Flutter Forms', 'Segmented UI', 'Tactile UX', 'Figma Tokens', 'Reactive GetX']
+  },
+  fintech: {
+    title: 'NovaVault Mobile Wealth',
+    category: 'Neo-Banking & Crypto · Dark Mode Redesign',
+    beforeImg: 'assets/images/dummy-fintech-before.png',
+    afterImg: 'assets/images/dummy-fintech-after.png',
+    challenge: 'An outdated 2015 banking portal filled with harsh monochrome tables, crowded statement lines, and confusing fund transfer flows.',
+    solution: 'Crafted an immersive high-contrast dark mode with glassmorphic portfolio cards, real-time glowing yield sparklines, one-tap biometric floating action pills, and streamlined activity tracking.',
+    metrics: [
+      { val: '+120%', label: 'Daily Engagement' },
+      { val: '1-Tap', label: 'Biometric Send' },
+      { val: '4.9 ★', label: 'User Rating' }
+    ],
+    tags: ['Flutter Dark Theme', 'CustomPainter', 'Fintech UI', 'Micro-interactions', 'Lottie']
+  },
+  ecommerce: {
+    title: 'Atelier Luxury E-Commerce',
+    category: 'Retail & Fashion · Modern Catalog Redesign',
+    beforeImg: 'assets/images/dummy-ecommerce-before.png',
+    afterImg: 'assets/images/dummy-ecommerce-after.png',
+    challenge: 'A clunky webview-style product listing with low-resolution boxes, misplaced pricing tags, and poor visual storytelling.',
+    solution: 'Designed a high-fashion mobile editorial experience with horizontal category pills, fluid hero product cards, subtle depth effects, and smooth Flutter hero transitions.',
+    metrics: [
+      { val: '+38%', label: 'Checkout Conversion' },
+      { val: '<100ms', label: 'Screen Transition' },
+      { val: '60 FPS', label: 'Scroll Velocity' }
+    ],
+    tags: ['Flutter Hero Animations', 'Sliver Layouts', 'E-Commerce', 'Figma to Flutter']
+  },
+  logistics: {
+    title: 'SwiftFleet Logistics Telemetry',
+    category: 'Supply Chain & Fleet · Live Telemetry Redesign',
+    beforeImg: 'assets/images/dummy-delivery-before.png',
+    afterImg: 'assets/images/dummy-delivery-after.png',
+    challenge: 'Static text tables with stale tabular delivery lists and no real-time geographic feedback for drivers and dispatchers.',
+    solution: 'Engineered an interactive Flutter telemetry console with live route tracking, glowing status chips, dynamic ETA calculations, and clean driver handover cards.',
+    metrics: [
+      { val: 'Real-time', label: 'GPS Telemetry' },
+      { val: '-30%', label: 'Dispatch Delays' },
+      { val: 'Offline', label: 'Sync Ready' }
+    ],
+    tags: ['Flutter Maps', 'Live Telemetry', 'Logistics UX', 'Clean Architecture']
+  }
+};
+
+function initBeforeAfterSlider() {
+  const container = document.getElementById('ba-compare-container');
+  if (!container) return;
+
+  const beforeImg = document.getElementById('ba-img-before');
+  const afterImg = document.getElementById('ba-img-after');
+  const tabBtns = document.querySelectorAll('.redesign-tab-btn');
+  const presetBtns = document.querySelectorAll('.ba-preset-btn');
+
+  const titleEl = document.getElementById('ba-detail-title');
+  const categoryEl = document.getElementById('ba-detail-category');
+  const tagsEl = document.getElementById('ba-detail-tags');
+  const challengeEl = document.getElementById('ba-detail-challenge');
+  const solutionEl = document.getElementById('ba-detail-solution');
+  const metricsEl = document.getElementById('ba-detail-metrics');
+
+  let isDragging = false;
+  let currentPos = 50;
+
+  function updateSliderPosition(pos) {
+    currentPos = Math.max(0, Math.min(100, pos));
+    container.style.setProperty('--ba-pos', `${currentPos}%`);
+
+    presetBtns.forEach(btn => {
+      const val = parseFloat(btn.dataset.pos);
+      if (Math.abs(val - currentPos) < 5) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  function handlePointerMove(e) {
+    if (!isDragging) return;
+    const rect = container.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : rect.left + rect.width / 2);
+    const offsetX = clientX - rect.left;
+    const percent = (offsetX / rect.width) * 100;
+    updateSliderPosition(percent);
+  }
+
+  container.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    container.setPointerCapture(e.pointerId);
+    handlePointerMove(e);
+  });
+
+  container.addEventListener('pointermove', handlePointerMove);
+
+  const stopDrag = (e) => {
+    if (isDragging) {
+      isDragging = false;
+      try {
+        container.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+    }
+  };
+
+  container.addEventListener('pointerup', stopDrag);
+  container.addEventListener('pointercancel', stopDrag);
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetPos = parseFloat(btn.dataset.pos);
+      animateSliderTo(targetPos);
+    });
+  });
+
+  function animateSliderTo(targetPos) {
+    const startPos = currentPos;
+    const startTime = performance.now();
+    const duration = 280;
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const newPos = startPos + (targetPos - startPos) * ease;
+      updateSliderPosition(newPos);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.project;
+      const data = REDESIGN_DATA[key];
+      if (!data) return;
+
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      container.style.opacity = '0.5';
+      setTimeout(() => {
+        beforeImg.src = data.beforeImg;
+        afterImg.src = data.afterImg;
+        container.style.opacity = '1';
+      }, 150);
+
+      if (titleEl) titleEl.textContent = data.title;
+      if (categoryEl) categoryEl.textContent = data.category;
+      if (challengeEl) challengeEl.textContent = data.challenge;
+      if (solutionEl) solutionEl.textContent = data.solution;
+
+      if (tagsEl) {
+        tagsEl.innerHTML = data.tags.map(t => `<span class="ba-tag">${t}</span>`).join('');
+      }
+
+      if (metricsEl) {
+        metricsEl.innerHTML = data.metrics.map(m => `
+          <div class="ba-metric-item">
+            <span class="ba-metric-val">${m.val}</span>
+            <span class="ba-metric-label">${m.label}</span>
+          </div>
+        `).join('');
+      }
+
+      animateSliderTo(50);
+    });
+  });
+
+  updateSliderPosition(50);
 }

@@ -262,15 +262,15 @@ section {
    8. IMAGE LAZY LOAD FADE
    ============================================================ */
 img {
+  opacity: 1;
+}
+
+img[data-src]:not(.loaded) {
   opacity: 0;
   transition: opacity 0.5s ease;
 }
 
-img.loaded {
-  opacity: 1;
-}
-
-/* Images that should always be visible (decorative) */
+img.loaded,
 img[data-no-lazy] {
   opacity: 1;
 }
